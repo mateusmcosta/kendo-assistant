@@ -2,7 +2,7 @@
 
 
 
-[ARTIGO](https://google.com)
+[ARTIGO](https://talkingaboutjava.blogspot.com/2026/04/engenharia-de-agentes-de-ia-com.html)
 
 
 
