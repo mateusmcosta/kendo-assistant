@@ -99,6 +99,7 @@ public class AssistantConfig {
         for (Resource resource : resources) {
             readFile(documents, pdfParser, resource);
         }
+        
         return documents;
     }
 
