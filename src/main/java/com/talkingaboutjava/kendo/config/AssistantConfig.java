@@ -41,7 +41,7 @@ public class AssistantConfig {
 
     @Bean
     public EmbeddingStore<TextSegment> embeddingStore() {
-        
+
         if (Files.exists(VECTOR_STORE_PATH)) {
 
             log.info("### Carregando vetores do arquivo local... (Economizando Cota) ###");
@@ -65,8 +65,8 @@ public class AssistantConfig {
                     .embeddingStore(embeddingStore)
                     .build();
 
-            getDocuments().forEach(doc -> indexFile(ingestor, doc));        
-       
+            getDocuments().forEach(doc -> ingestFile(ingestor, doc));
+
             ((InMemoryEmbeddingStore<TextSegment>) embeddingStore).serializeToFile(VECTOR_STORE_PATH);
             log.info("### Vetores salvos com sucesso em: " + VECTOR_STORE_PATH.toAbsolutePath() + " ###");
         }
@@ -99,7 +99,7 @@ public class AssistantConfig {
         for (Resource resource : resources) {
             readFile(documents, pdfParser, resource);
         }
-        
+
         return documents;
     }
 
@@ -115,7 +115,7 @@ public class AssistantConfig {
         }
     }
 
-    private void indexFile(EmbeddingStoreIngestor ingestor, Document doc) {
+    private void ingestFile(EmbeddingStoreIngestor ingestor, Document doc) {
         log.info("Indexando PDF: " + doc.metadata().getString("file_name"));
         ingestor.ingest(doc);
         try {
