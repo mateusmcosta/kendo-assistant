@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dojo Digital - Sensei Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+    <header>
+        Sensei Digital <span style="font-weight: 300; color: #70757a;">| Dojo Assistant</span>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="chat-container" id="chatContainer">
+            <div th:each="msg : ${history}" 
+                 th:classappend="${msg.sender == 'Você' ? 'user' : 'bot'}" 
+                 class="message">
+                <strong th:text="${msg.sender}"></strong>
+                <p th:text="${msg.text}"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-wrapper">
+        <form class="input-area" th:action="@{/kendo-assistant/send}" method="post" id="chatForm">
+            <input type="text" name="message" id="userInput" placeholder="Digite sua dúvida sobre Kendo..." required autofocus autocomplete="off">
+            <button type="submit" id="sendBtn">Enviar</button>
+        </form>
+    </div>
+
+    <script>
+        const container = document.getElementById('chatContainer');
+        const form = document.getElementById('chatForm');
+        const btn = document.getElementById('sendBtn');
+
+        // Scroll automático
+        container.scrollTop = container.scrollHeight;
+
+        // Feedback visual ao enviar
+        form.onsubmit = () => {
+            btn.innerText = "Consultando...";
+            btn.style.opacity = "0.7";
+            btn.disabled = true;
+        };
+    </script>
+</body>
+</html>
