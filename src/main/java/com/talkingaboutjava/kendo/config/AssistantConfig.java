@@ -41,6 +41,7 @@ public class AssistantConfig {
 
     @Bean
     public EmbeddingStore<TextSegment> embeddingStore() {
+        
         if (Files.exists(VECTOR_STORE_PATH)) {
 
             log.info("### Carregando vetores do arquivo local... (Economizando Cota) ###");
@@ -57,7 +58,6 @@ public class AssistantConfig {
 
         if (!Files.exists(VECTOR_STORE_PATH)) {
             log.info("### Arquivo de vetores não encontrado. Iniciando Ingestão de PDFs... ###");
-            List<Document> documents = getDocuments();
 
             EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()
                     .documentSplitter(DocumentSplitters.recursive(1500, 200))
@@ -65,17 +65,8 @@ public class AssistantConfig {
                     .embeddingStore(embeddingStore)
                     .build();
 
-            for (Document doc : documents) {
-                log.info("Indexando PDF: " + doc.metadata().getString("file_name"));
-                ingestor.ingest(doc);
-                try {
-                    Thread.sleep(WAIT_TIME);
-                } catch (InterruptedException _) {
-                    Thread.currentThread().interrupt();
-                }
-
-            }
-
+            getDocuments().forEach(doc -> indexFile(ingestor, doc));        
+       
             ((InMemoryEmbeddingStore<TextSegment>) embeddingStore).serializeToFile(VECTOR_STORE_PATH);
             log.info("### Vetores salvos com sucesso em: " + VECTOR_STORE_PATH.toAbsolutePath() + " ###");
         }
@@ -106,15 +97,30 @@ public class AssistantConfig {
         ApachePdfBoxDocumentParser pdfParser = new ApachePdfBoxDocumentParser();
 
         for (Resource resource : resources) {
-            Path tempFile = Files.createTempFile("rag-kendo-", ".pdf");
-            try (InputStream is = resource.getInputStream()) {
-                Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
-                Document doc = FileSystemDocumentLoader.loadDocument(tempFile, pdfParser);
-                documents.add(doc);
-            } finally {
-                Files.deleteIfExists(tempFile);
-            }
+            readFile(documents, pdfParser, resource);
         }
         return documents;
+    }
+
+    private void readFile(List<Document> documents, ApachePdfBoxDocumentParser pdfParser, Resource resource)
+            throws IOException {
+        Path tempFile = Files.createTempFile("rag-kendo-", ".pdf");
+        try (InputStream is = resource.getInputStream()) {
+            Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            Document doc = FileSystemDocumentLoader.loadDocument(tempFile, pdfParser);
+            documents.add(doc);
+        } finally {
+            Files.deleteIfExists(tempFile);
+        }
+    }
+
+    private void indexFile(EmbeddingStoreIngestor ingestor, Document doc) {
+        log.info("Indexando PDF: " + doc.metadata().getString("file_name"));
+        ingestor.ingest(doc);
+        try {
+            Thread.sleep(WAIT_TIME);
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
